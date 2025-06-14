@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Square from "./Square";
 
+
 const winSound = new Audio("/sounds/win.mp3");
 const loseSound = new Audio("/sounds/lose.mp3");
 const clickSound = new Audio("/sounds/click.mp3");

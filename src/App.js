@@ -1,4 +1,5 @@
 import Board from "./components/Board";
+import { Analytics } from "@vercel/analytics/react"
 
 function App() {
   return (
