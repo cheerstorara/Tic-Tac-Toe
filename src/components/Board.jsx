@@ -48,17 +48,19 @@ export default function Board() {
     setPlayerSymbol(symbol);
     setAiSymbol(ai);
     setGameStarted(true);
-
+  
+    // Jika player memilih O, maka AI akan jalan dulu (pakai getBestMove)
     if (symbol === "O") {
-      const aiMove = getRandomMove(squares);
+      const aiMove = getBestMove(squares, ai, symbol);
       if (aiMove !== null) {
         const next = [...squares];
-        next[aiMove] = "X";
+        next[aiMove] = ai;
         setSquares(next);
         setIsXNext(false);
       }
     }
   }
+  
 
   function handleClick(index) {
     if (!gameStarted || !isPlayerTurn || squares[index] || winner) return;
@@ -90,7 +92,7 @@ export default function Board() {
       squares.filter(Boolean).length < 9
     ) {
       const timeout = setTimeout(() => {
-        const aiMove = getRandomMove(squares);
+        const aiMove = getBestMove(squares, aiSymbol, playerSymbol); // Ganti dari getRandomMove
         if (aiMove !== null) {
           const next = [...squares];
           next[aiMove] = aiSymbol;
@@ -182,14 +184,58 @@ export default function Board() {
     
 }
 
-function getRandomMove(squares) {
-  const available = squares
-    .map((val, i) => (val === null ? i : null))
+function getBestMove(squares, ai, player) {
+  const availableMoves = squares
+    .map((val, idx) => (val === null ? idx : null))
     .filter((v) => v !== null);
-  if (available.length === 0) return null;
-  const randomIndex = Math.floor(Math.random() * available.length);
-  return available[randomIndex];
+
+  if (availableMoves.length === 0) return null;
+
+  let bestScore = -Infinity;
+  let move;
+
+  for (let index of availableMoves) {
+    const newSquares = [...squares];
+    newSquares[index] = ai;
+    const score = minimax(newSquares, false, ai, player);
+    if (score > bestScore) {
+      bestScore = score;
+      move = index;
+    }
+  }
+
+  return move;
 }
+
+function minimax(board, isMaximizing, ai, player) {
+  const result = calculateWinner(board);
+  if (result?.winner === ai) return 10;
+  if (result?.winner === player) return -10;
+  if (board.every(Boolean)) return 0; // Draw
+
+  const availableMoves = board
+    .map((val, idx) => (val === null ? idx : null))
+    .filter((v) => v !== null);
+
+  if (isMaximizing) {
+    let best = -Infinity;
+    for (let i of availableMoves) {
+      const newBoard = [...board];
+      newBoard[i] = ai;
+      best = Math.max(best, minimax(newBoard, false, ai, player));
+    }
+    return best;
+  } else {
+    let best = Infinity;
+    for (let i of availableMoves) {
+      const newBoard = [...board];
+      newBoard[i] = player;
+      best = Math.min(best, minimax(newBoard, true, ai, player));
+    }
+    return best;
+  }
+}
+
 
 function calculateWinner(squares) {
   const lines = [
